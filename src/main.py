@@ -8,7 +8,9 @@ import database as db
 import engine as eng
 import formatters as fmt
 
-ctk.set_appearance_mode("dark")
+# Carrega a preferência de tema antes de iniciar a janela
+config = db.carregar_configuracoes()
+ctk.set_appearance_mode(config.get("tema", "dark"))
 ctk.set_default_color_theme("blue")
 
 app = ctk.CTk()
@@ -25,14 +27,61 @@ main_area = ctk.CTkFrame(app, corner_radius=0)
 main_area.pack(side="right", fill="both", expand=True)
 main_area.pack_propagate(False)
 
-# Cabeçalho
+# =========================================================================
+# 🔔 CABEÇALHO & CONEXÃO DOS BOTÕES EXISTENTES
+# =========================================================================
+
 header = ctk.CTkFrame(main_area, height=50, corner_radius=0)
 header.pack(side="top", fill="x")
+
 ctk.CTkLabel(header, text="🔔 LembreJá", font=("Segoe UI", 20, "bold")).pack(
     side="left", padx=20, pady=15
 )
-ctk.CTkButton(header, text="⚙️", width=40).pack(side="right", padx=20, pady=15)
-ctk.CTkButton(header, text="🌙", width=40).pack(side="right")
+
+# Definição da função para alternar o tema usando o botão do cabeçalho
+def alternar_tema_rapido():
+    config_atual = db.carregar_configuracoes()
+    modo_atual = ctk.get_appearance_mode()
+
+    novo_modo = "light" if modo_atual == "Dark" else "dark"
+    ctk.set_appearance_mode(novo_modo)
+
+    config_atual["tema"] = novo_modo
+    db.salvar_configuracoes(config_atual)
+
+    # Atualiza o ícone do próprio botão
+    icone = "🌙" if novo_modo == "dark" else "☀️"
+    btn_tema.configure(text=icone)
+
+
+# Configuração inicial do ícone do tema
+icone_inicial = "🌙" if config.get("tema", "dark") == "dark" else "☀️"
+
+# Botão de Configurações (⚙️) - Conectado diretamente à função selecionar_aba
+btn_config = ctk.CTkButton(
+    header,
+    text="⚙️",
+    width=40,
+    height=32,
+    fg_color=("#e0e0e0", "#2b2b2b"),
+    hover_color=("#d0d0d0", "#3a3a3a"),
+    text_color=("#1a1a1a", "#ffffff"),
+    command=lambda: selecionar_aba("configuracoes"),
+)
+btn_config.pack(side="right", padx=20, pady=15)
+
+# Botão de Tema (🌙/☀️) - Conectado diretamente à função alternar_tema_rapido
+btn_tema = ctk.CTkButton(
+    header,
+    text=icone_inicial,
+    width=40,
+    height=32,
+    fg_color=("#e0e0e0", "#2b2b2b"),
+    hover_color=("#d0d0d0", "#3a3a3a"),
+    text_color=("#1a1a1a", "#ffffff"),
+    command=alternar_tema_rapido,
+)
+btn_tema.pack(side="right", padx=(0, 5), pady=15)
 
 # Container Principal de Conteúdo
 content = ctk.CTkScrollableFrame(main_area, fg_color="transparent")
@@ -134,6 +183,226 @@ def carregar_tela_estatisticas():
             progress.set(info["porcentagem"] / 100)
             progress.configure(progress_color=info["cor"], fg_color="#1e1e1e")
 
+def carregar_tela_estatisticas():
+    """Renderiza a aba de estatísticas com suporte completo a Tema Claro e Escuro."""
+    for widget in content.winfo_children():
+        widget.destroy()
+
+    lbl_titulo = ctk.CTkLabel(
+        content, text="📊 Estatísticas & Produtividade", font=("Segoe UI", 24, "bold")
+    )
+    lbl_titulo.pack(anchor="nw", pady=(10, 20))
+
+    dados = db.obter_estatisticas()
+
+    # --- CARDS DE RESUMO (KPIs) ---
+    frame_kpis = ctk.CTkFrame(content, fg_color="transparent")
+    frame_kpis.pack(fill="x", pady=(0, 20))
+
+    def criar_kpi_card(parent, titulo, valor, icone, cor_destaque):
+        # Cor de fundo adaptável: ("Modo Claro", "Modo Escuro")
+        card = ctk.CTkFrame(
+            parent,
+            corner_radius=12,
+            fg_color=("#ffffff", "#2b2b2b"),
+            border_width=1,
+            border_color=("#e0e0e0", "#3a3a3a"),
+        )
+        card.pack(side="left", fill="both", expand=True, padx=5)
+
+        barra = ctk.CTkFrame(card, height=4, fg_color=cor_destaque, corner_radius=2)
+        barra.pack(fill="x", side="top")
+
+        info_frame = ctk.CTkFrame(card, fg_color="transparent")
+        info_frame.pack(padx=15, pady=15, fill="both")
+
+        ctk.CTkLabel(
+            info_frame,
+            text=f"{icone} {titulo}",
+            font=("Segoe UI", 12),
+            text_color=("#666666", "#a0a0a0"),
+        ).pack(anchor="w")
+        
+        ctk.CTkLabel(
+            info_frame,
+            text=str(valor),
+            font=("Segoe UI", 22, "bold"),
+            text_color=("#1a1a1a", "#ffffff"),
+        ).pack(anchor="w", pady=(5, 0))
+
+    criar_kpi_card(frame_kpis, "Total de Alarmes", dados["total_alarmes"], "⏰", "#1f538d")
+    criar_kpi_card(frame_kpis, "Alarmes Ativos", dados["ativos"], "🟢", "#2e7d32")
+    criar_kpi_card(frame_kpis, "Concluídos/Histórico", dados["historico"], "📜", "#8e24aa")
+    criar_kpi_card(frame_kpis, "Cat. Mais Usada", dados["cat_mais_popular"], "⭐", "#f57c00")
+
+    # --- DISTRIBUIÇÃO POR CATEGORIA ---
+    lbl_sub = ctk.CTkLabel(
+        content, text="📂 Distribuição por Categoria", font=("Segoe UI", 18, "bold")
+    )
+    lbl_sub.pack(anchor="nw", pady=(10, 10))
+
+    frame_categorias = ctk.CTkFrame(
+        content,
+        fg_color=("#ffffff", "#2b2b2b"),
+        corner_radius=12,
+        border_width=1,
+        border_color=("#e0e0e0", "#3a3a3a"),
+    )
+    frame_categorias.pack(fill="x", pady=5, padx=5)
+
+    if not dados["detalhes_categorias"]:
+        ctk.CTkLabel(
+            frame_categorias, text="Nenhuma categoria cadastrada.", text_color="#888888"
+        ).pack(pady=20)
+    else:
+        for nome_cat, info in dados["detalhes_categorias"].items():
+            linha = ctk.CTkFrame(frame_categorias, fg_color="transparent")
+            linha.pack(fill="x", padx=20, pady=10)
+
+            info_linha = ctk.CTkFrame(linha, fg_color="transparent")
+            info_linha.pack(fill="x")
+
+            ctk.CTkLabel(
+                info_linha,
+                text=nome_cat,
+                font=("Segoe UI", 14, "bold"),
+                text_color=("#1a1a1a", "#ffffff"),
+            ).pack(side="left")
+
+            ctk.CTkLabel(
+                info_linha,
+                text=f"{info['qtd']} alarmes ({info['porcentagem']:.1f}%)",
+                font=("Segoe UI", 12),
+                text_color=("#666666", "#a0a0a0"),
+            ).pack(side="right")
+
+            progress = ctk.CTkProgressBar(linha, height=10, corner_radius=5)
+            progress.pack(fill="x", pady=(5, 0))
+            progress.set(info["porcentagem"] / 100)
+            progress.configure(
+                progress_color=info["cor"], fg_color=("#e0e0e0", "#1e1e1e")
+            )
+
+
+def carregar_tela_configuracoes():
+    """Renderiza a aba de configurações adaptada para ambos os temas."""
+    for widget in content.winfo_children():
+        widget.destroy()
+
+    lbl_titulo = ctk.CTkLabel(
+        content, text="⚙️ Configurações", font=("Segoe UI", 24, "bold")
+    )
+    lbl_titulo.pack(anchor="nw", pady=(10, 20))
+
+    config_atual = db.carregar_configuracoes()
+
+    # Estilo padrão dos frames de seção
+    estilo_card = {
+        "fg_color": ("#ffffff", "#2b2b2b"),
+        "corner_radius": 12,
+        "border_width": 1,
+        "border_color": ("#e0e0e0", "#3a3a3a"),
+    }
+
+    # --- SEÇÃO 1: APARÊNCIA ---
+    frame_aparencia = ctk.CTkFrame(content, **estilo_card)
+    frame_aparencia.pack(fill="x", pady=10, padx=5)
+
+    lbl_aparencia = ctk.CTkLabel(
+        frame_aparencia,
+        text="🎨 Aparência",
+        font=("Segoe UI", 16, "bold"),
+        text_color=("#1a1a1a", "#ffffff"),
+    )
+    lbl_aparencia.pack(anchor="w", padx=20, pady=(15, 10))
+
+    row_tema = ctk.CTkFrame(frame_aparencia, fg_color="transparent")
+    row_tema.pack(fill="x", padx=20, pady=(0, 15))
+
+    ctk.CTkLabel(
+        row_tema,
+        text="Tema do Aplicativo:",
+        font=("Segoe UI", 13),
+        text_color=("#333333", "#dce1e6"),
+    ).pack(side="left")
+
+    def mudar_tema(novo_tema):
+        modo = "dark" if novo_tema == "Escuro" else "light"
+        ctk.set_appearance_mode(modo)
+        config_atual["tema"] = modo
+        db.salvar_configuracoes(config_atual)
+
+    opt_tema = ctk.CTkOptionMenu(
+        row_tema, values=["Escuro", "Claro"], command=mudar_tema, width=120
+    )
+    opt_tema.set("Escuro" if config_atual.get("tema") == "dark" else "Claro")
+    opt_tema.pack(side="right")
+
+    # --- SEÇÃO 2: PREFERÊNCIAS DE ALARME ---
+    frame_alarmes = ctk.CTkFrame(content, **estilo_card)
+    frame_alarmes.pack(fill="x", pady=10, padx=5)
+
+    lbl_alarmes_tit = ctk.CTkLabel(
+        frame_alarmes,
+        text="🔔 Notificações & Som",
+        font=("Segoe UI", 16, "bold"),
+        text_color=("#1a1a1a", "#ffffff"),
+    )
+    lbl_alarmes_tit.pack(anchor="w", padx=20, pady=(15, 10))
+
+    row_som = ctk.CTkFrame(frame_alarmes, fg_color="transparent")
+    row_som.pack(fill="x", padx=20, pady=(0, 15))
+
+    def toggle_som():
+        config_atual["som_alarme"] = switch_som.get() == 1
+        db.salvar_configuracoes(config_atual)
+
+    switch_som = ctk.CTkSwitch(
+        row_som,
+        text="Emitir sinal sonoro nos alarmes",
+        font=("Segoe UI", 13),
+        command=toggle_som,
+        text_color=("#333333", "#dce1e6"),
+    )
+    if config_atual.get("som_alarme", True):
+        switch_som.select()
+    else:
+        switch_som.deselect()
+    switch_som.pack(anchor="w")
+
+    # --- SEÇÃO 3: MANUTENÇÃO E DADOS ---
+    frame_dados = ctk.CTkFrame(content, **estilo_card)
+    frame_dados.pack(fill="x", pady=10, padx=5)
+
+    lbl_dados_tit = ctk.CTkLabel(
+        frame_dados,
+        text="🛠️ Gerenciamento de Dados",
+        font=("Segoe UI", 16, "bold"),
+        text_color=("#1a1a1a", "#ffffff"),
+    )
+    lbl_dados_tit.pack(anchor="w", padx=20, pady=(15, 10))
+
+    row_botoes = ctk.CTkFrame(frame_dados, fg_color="transparent")
+    row_botoes.pack(fill="x", padx=20, pady=(0, 15))
+
+    def acao_limpar_historico():
+        if messagebox.askyesno(
+            "⚠️ Limpar Histórico",
+            "Tem certeza que deseja apagar todo o histórico de alarmes já disparados?",
+        ):
+            db.limpar_historico()
+            messagebox.showinfo("Sucesso", "Histórico apagado com sucesso!")
+
+    btn_limpar_hist = ctk.CTkButton(
+        row_botoes,
+        text="🗑️ Limpar Histórico",
+        fg_color=("#fde8e8", "#3a1a1a"),      # Vermelho suave no Claro, escuro no Dark
+        hover_color=("#f8b4b4", "#c84343"),
+        text_color=("#9b1c1c", "#ff9999"),     # Texto escuro no Claro, claro no Dark
+        font=("Segoe UI", 12, "bold"),
+        command=acao_limpar_historico,
+    )
+    btn_limpar_hist.pack(side="left", padx=(0, 10))
 
 # 2. Agora o selecionar_aba consegue enxergar a função declarada acima!
 def selecionar_aba(nome_aba):
@@ -154,7 +423,8 @@ def selecionar_aba(nome_aba):
         carregar_tela_categorias()
     elif nome_aba == "estatisticas":
         carregar_tela_estatisticas()
-
+    elif nome_aba == "configuracoes":
+        carregar_tela_configuracoes()
 
 def carregar_tela_categorias():
     """Busca as categorias no banco e renderiza a interface visual com botões de ação."""

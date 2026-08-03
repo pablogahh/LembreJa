@@ -6,9 +6,34 @@ from datetime import datetime
 ARQUIVO_ALARMES = "data/alarmes.json"
 ARQUIVO_HISTORICO = "data/historico.json"
 ARQUIVO_CATEGORIAS = "data/categorias.json"
+ARQUIVO_CONFIG = "data/config.json"
 
 if not os.path.exists("data"):
     os.makedirs("data")
+
+def carregar_configuracoes():
+    if not os.path.exists(ARQUIVO_CONFIG):
+        config_padrao = {
+            "tema": "dark",
+            "som_alarme": True,
+            "tempo_soneca": 5
+        }
+        salvar_configuracoes(config_padrao)
+        return config_padrao
+    try:
+        with open(ARQUIVO_CONFIG, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        return {"tema": "dark", "som_alarme": True, "tempo_soneca": 5}
+
+def salvar_configuracoes(config):
+    with open(ARQUIVO_CONFIG, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4, ensure_ascii=False)
+
+def limpar_historico():
+    if os.path.exists(ARQUIVO_HISTORICO):
+        with open(ARQUIVO_HISTORICO, "w", encoding="utf-8") as f:
+            json.dump([], f)
 
 def carregar_alarmes():
     if not os.path.exists(ARQUIVO_ALARMES):
