@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from datetime import datetime
 
 ARQUIVO_ALARMES = "data/alarmes.json"
@@ -8,7 +9,6 @@ ARQUIVO_CATEGORIAS = "data/categorias.json"
 
 if not os.path.exists("data"):
     os.makedirs("data")
-
 
 def carregar_alarmes():
     if not os.path.exists(ARQUIVO_ALARMES):
@@ -24,8 +24,9 @@ def salvar_alarmes(alarmes):
     with open(ARQUIVO_ALARMES, "w", encoding="utf-8") as arquivo:
         json.dump(alarmes, arquivo, indent=4, ensure_ascii=False)
 
+
 def adicionar_alarme(titulo, horario, dias_semana=None, categoria_id="4", ativo=True):
-    alarmes = carregar_alarmes
+    alarmes = carregar_alarmes()  # Corrigido: adicionados parênteses
 
     novo_alarme = {
         "id": str(int(time.time() * 1000)),
@@ -33,12 +34,13 @@ def adicionar_alarme(titulo, horario, dias_semana=None, categoria_id="4", ativo=
         "horario": horario,
         "dias_semana": dias_semana or [],
         "categoria_id": categoria_id,
-        "ativo": ativo
+        "ativo": ativo,
     }
 
     alarmes.append(novo_alarme)
     salvar_alarmes(alarmes)
     return novo_alarme
+
 
 def arquivar_no_historico(alarme):
     historico = []
@@ -58,10 +60,10 @@ def arquivar_no_historico(alarme):
 def inicializar_categorias():
     if not os.path.exists(ARQUIVO_CATEGORIAS):
         categorias_padrao = [
-            {"id": "1", "nome": "Trabalho", "cor": "#FF5555"},   # Vermelho pastel
-            {"id": "2", "nome": "Estudos", "cor": "#50FA7B"},    # Verde pastel
-            {"id": "3", "nome": "Pessoal", "cor": "#8BE9FD"},    # Ciano/Azul
-            {"id": "4", "nome": "Geral", "cor": "#BD93F9"}       # Roxo/Lilás
+            {"id": "1", "nome": "Trabalho", "cor": "#FF5555"},  # Vermelho pastel
+            {"id": "2", "nome": "Estudos", "cor": "#50FA7B"},   # Verde pastel
+            {"id": "3", "nome": "Pessoal", "cor": "#8BE9FD"},   # Ciano/Azul
+            {"id": "4", "nome": "Geral", "cor": "#BD93F9"},     # Roxo/Lilás
         ]
         salvar_categorias(categorias_padrao)
 
@@ -74,32 +76,51 @@ def carregar_categorias():
         with open(ARQUIVO_CATEGORIAS, "r", encoding="utf-8") as arquivo:
             return json.load(arquivo)
     except json.JSONDecodeError:
-        return[]
-    
+        return []
+
+
 def salvar_categorias(categorias):
-    with open(ARQUIVO_CATEGORIAS, "w", encoding="utf-8",) as arquivo:
+    with open(ARQUIVO_CATEGORIAS, "w", encoding="utf-8") as arquivo:
         json.dump(categorias, arquivo, indent=4, ensure_ascii=False)
 
+
 def criar_categorias(nome, cor):
-    import time
     categorias = carregar_categorias()
 
     nova_cat = {
         "id": str(int(time.time() * 1000)),
         "nome": nome,
-        "cor": cor
+        "cor": cor,
     }
     categorias.append(nova_cat)
     salvar_categorias(categorias)
     return nova_cat
 
-def obter_categoria_por_id(categoria_id):
+
+def atualizar_categoria(categoria_id, novo_nome, nova_cor):
     categorias = carregar_categorias()
     for cat in categorias:
         if cat["id"] == str(categoria_id):
+            cat["nome"] = novo_nome
+            cat["cor"] = nova_cor
+            break
+    salvar_categorias(categorias)
+
+
+def deletar_categoria(categoria_id):
+    categorias = carregar_categorias()
+    categorias = [c for c in categorias if c["id"] != str(categoria_id)]
+    salvar_categorias(categorias)
+
+
+def obter_categoria_por_id(categoria_id):
+    categorias = carregar_categorias()
+    for cat in categorias:
+        if str(cat.get("id")) == str(categoria_id):
             return cat
-    return {"id": "0", "nome": "Sem Categoria", "cor": "#888888"}
+    return {"id": "0", "nome": "Geral", "cor": "#BD93F9"}
+
 
 def obter_alarmes_por_categoria(categoria_id):
     alarmes = carregar_alarmes()
-    return [a for a in alarmes if a.get("categoria_id") == str(categoria_id)] 
+    return [a for a in alarmes if str(a.get("categoria_id")) == str(categoria_id)]
