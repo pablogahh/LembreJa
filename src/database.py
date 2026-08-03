@@ -124,3 +124,48 @@ def obter_categoria_por_id(categoria_id):
 def obter_alarmes_por_categoria(categoria_id):
     alarmes = carregar_alarmes()
     return [a for a in alarmes if str(a.get("categoria_id")) == str(categoria_id)]
+
+def obter_estatisticas():
+    alarmes = carregar_alarmes()
+    categorias = carregar_categorias()
+    historico = []
+
+    if os.path.exists(ARQUIVO_HISTORICO):
+        try:
+            with open(ARQUIVO_HISTORICO, "r", encoding="utf-8") as f:
+                historico = json.load(f)
+        except json.JSONDecodeError:
+            historico = []
+
+    total_alarmes = len(alarmes)
+    total_historico = len(historico)
+    disparados = sum(1 for a in alarmes if a.get("disparado", False))
+    ativos = total_alarmes - disparados
+
+    # Contagem por Categoria
+    contagem_categorias = {}
+    for cat in categorias:
+        cat_id = str(cat["id"])
+        qtd = sum(1 for a in alarmes if str(a.get("categoria_id")) == cat_id)
+        contagem_categorias[cat["nome"]] = {
+            "qtd": qtd,
+            "cor": cat["cor"],
+            "porcentagem": (qtd / total_alarmes * 100) if total_alarmes > 0 else 0
+        }
+
+    # Categoria mais popular
+    cat_mais_popular = "Nenhuma"
+    max_qtd = 0
+    for nome, dados in contagem_categorias.items():
+        if dados["qtd"] > max_qtd:
+            max_qtd = dados["qtd"]
+            cat_mais_popular = nome
+
+    return {
+        "total_alarmes": total_alarmes,
+        "ativos": ativos,
+        "disparados": disparados,
+        "historico": total_historico,
+        "cat_mais_popular": cat_mais_popular,
+        "detalhes_categorias": contagem_categorias
+    }

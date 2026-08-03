@@ -68,6 +68,74 @@ def carregar_tela_alarmes():
     recarregar_interface_cards()
 
 
+# 1. Defina a função da tela de estatísticas primeiro
+def carregar_tela_estatisticas():
+    for widget in content.winfo_children():
+        widget.destroy()
+
+    lbl_titulo = ctk.CTkLabel(
+        content, text="📊 Estatísticas & Produtividade", font=("Segoe UI", 24, "bold")
+    )
+    lbl_titulo.pack(anchor="nw", pady=(10, 20))
+
+    dados = db.obter_estatisticas()
+
+    # --- KPIs ---
+    frame_kpis = ctk.CTkFrame(content, fg_color="transparent")
+    frame_kpis.pack(fill="x", pady=(0, 20))
+
+    def criar_kpi_card(parent, titulo, valor, icone, cor_destaque):
+        card = ctk.CTkFrame(parent, corner_radius=12, fg_color="#2b2b2b", border_width=1, border_color="#3a3a3a")
+        card.pack(side="left", fill="both", expand=True, padx=5)
+
+        barra = ctk.CTkFrame(card, height=4, fg_color=cor_destaque, corner_radius=2)
+        barra.pack(fill="x", side="top")
+
+        info_frame = ctk.CTkFrame(card, fg_color="transparent")
+        info_frame.pack(padx=15, pady=15, fill="both")
+
+        ctk.CTkLabel(info_frame, text=f"{icone} {titulo}", font=("Segoe UI", 12), text_color="#a0a0a0").pack(anchor="w")
+        ctk.CTkLabel(info_frame, text=str(valor), font=("Segoe UI", 22, "bold"), text_color="#ffffff").pack(anchor="w", pady=(5, 0))
+
+    criar_kpi_card(frame_kpis, "Total de Alarmes", dados["total_alarmes"], "⏰", "#1f538d")
+    criar_kpi_card(frame_kpis, "Alarmes Ativos", dados["ativos"], "🟢", "#50FA7B")
+    criar_kpi_card(frame_kpis, "Concluídos/Histórico", dados["historico"], "📜", "#BD93F9")
+    criar_kpi_card(frame_kpis, "Cat. Mais Usada", dados["cat_mais_popular"], "⭐", "#FFB86C")
+
+    # --- CATEGORIAS ---
+    lbl_sub = ctk.CTkLabel(
+        content, text="📂 Distribuição por Categoria", font=("Segoe UI", 18, "bold")
+    )
+    lbl_sub.pack(anchor="nw", pady=(10, 10))
+
+    frame_categorias = ctk.CTkFrame(content, fg_color="#2b2b2b", corner_radius=12, border_width=1, border_color="#3a3a3a")
+    frame_categorias.pack(fill="x", pady=5, padx=5)
+
+    if not dados["detalhes_categorias"]:
+        ctk.CTkLabel(frame_categorias, text="Nenhuma categoria cadastrada.", text_color="#888888").pack(pady=20)
+    else:
+        for nome_cat, info in dados["detalhes_categorias"].items():
+            linha = ctk.CTkFrame(frame_categorias, fg_color="transparent")
+            linha.pack(fill="x", padx=20, pady=10)
+
+            info_linha = ctk.CTkFrame(linha, fg_color="transparent")
+            info_linha.pack(fill="x")
+
+            ctk.CTkLabel(info_linha, text=nome_cat, font=("Segoe UI", 14, "bold")).pack(side="left")
+            ctk.CTkLabel(
+                info_linha,
+                text=f"{info['qtd']} alarmes ({info['porcentagem']:.1f}%)",
+                font=("Segoe UI", 12),
+                text_color="#a0a0a0"
+            ).pack(side="right")
+
+            progress = ctk.CTkProgressBar(linha, height=10, corner_radius=5)
+            progress.pack(fill="x", pady=(5, 0))
+            progress.set(info["porcentagem"] / 100)
+            progress.configure(progress_color=info["cor"], fg_color="#1e1e1e")
+
+
+# 2. Agora o selecionar_aba consegue enxergar a função declarada acima!
 def selecionar_aba(nome_aba):
     for nome, botao in botoes_menu.items():
         if nome == nome_aba:
@@ -84,12 +152,8 @@ def selecionar_aba(nome_aba):
         comp.carregar_tela_calendario(app, content)
     elif nome_aba == "categorias":
         carregar_tela_categorias()
-    else:
-        ctk.CTkLabel(
-            content,
-            text=f"📂 Aba '{nome_aba.upper()}' (Estrutura modular pronta)",
-            font=("Segoe UI", 18),
-        ).pack(pady=50)
+    elif nome_aba == "estatisticas":
+        carregar_tela_estatisticas()
 
 
 def carregar_tela_categorias():
