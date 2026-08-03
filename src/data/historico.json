@@ -9,5 +9,17 @@
         "descricao": "",
         "disparado": true,
         "arquivado_em": "16/06/2026 21:41:10"
+    },
+    {
+        "id": "e31bafe0-0ef8-4d6d-a2e6-19350d93ce1a",
+        "titulo": "Agora",
+        "categoria": "Estudos",
+        "categoria_id": "2",
+        "prioridade": "🟢 Baixa",
+        "data": "03/08/2026",
+        "horario": "16:40",
+        "descricao": "oi",
+        "disparado": true,
+        "arquivado_em": "03/08/2026 16:40:11"
     }
 ]
