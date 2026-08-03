@@ -1,0 +1,13 @@
+[
+    {
+        "id": "40e8c3b6-24eb-4382-8976-298c035f0ce6",
+        "titulo": "teste",
+        "categoria": "📚 Estudos",
+        "prioridade": "🟢 Baixa",
+        "data": "16/06/2026",
+        "horario": "21:41",
+        "descricao": "",
+        "disparado": true,
+        "arquivado_em": "16/06/2026 21:41:10"
+    }
+]

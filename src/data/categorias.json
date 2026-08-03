@@ -1,0 +1,37 @@
+[
+    {
+        "id": "1",
+        "nome": "Trabalho",
+        "cor": "#FF5555"
+    },
+    {
+        "id": "2",
+        "nome": "Estudos",
+        "cor": "#50FA7B"
+    },
+    {
+        "id": "3",
+        "nome": "Pessoal",
+        "cor": "#8BE9FD"
+    },
+    {
+        "id": "4",
+        "nome": "Geral",
+        "cor": "#BD93F9"
+    },
+    {
+        "id": "1783802886114",
+        "nome": "Estudos",
+        "cor": "#FF5555"
+    },
+    {
+        "id": "1783802920058",
+        "nome": "Estudos",
+        "cor": "#50FA7B"
+    },
+    {
+        "id": "1785782139375",
+        "nome": "Finanças",
+        "cor": "#6272A4"
+    }
+]
