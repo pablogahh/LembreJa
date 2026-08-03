@@ -1,10 +1,12 @@
+import threading
+from tkinter import messagebox
 import customtkinter as ctk
-import database as db
-import engine as eng
-import formatters as fmt
 
 import components.components as comp
 from components.sidebar import SidebarMenu
+import database as db
+import engine as eng
+import formatters as fmt
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -13,12 +15,12 @@ app = ctk.CTk()
 app.title("LembreJá")
 app.geometry("1200x700")
 
-# Menu Lateral (Fixo e limpo dos erros de 'self')
+# Menu Lateral
 sidebar = ctk.CTkFrame(app, width=250, corner_radius=0)
 sidebar.pack(side="left", fill="y")
 ctk.CTkLabel(sidebar, text="Menu", font=("Segoe UI", 22, "bold")).pack(pady=(30, 20))
 
-# Área Principal (Onde fica o cabeçalho e os cartões)
+# Área Principal
 main_area = ctk.CTkFrame(app, corner_radius=0)
 main_area.pack(side="right", fill="both", expand=True)
 main_area.pack_propagate(False)
@@ -32,7 +34,7 @@ ctk.CTkLabel(header, text="🔔 LembreJá", font=("Segoe UI", 20, "bold")).pack(
 ctk.CTkButton(header, text="⚙️", width=40).pack(side="right", padx=20, pady=15)
 ctk.CTkButton(header, text="🌙", width=40).pack(side="right")
 
-# Container Principal de Conteúdo (Scrollable)
+# Container Principal de Conteúdo
 content = ctk.CTkScrollableFrame(main_area, fg_color="transparent")
 content.pack(padx=20, pady=20, fill="both", expand=True)
 
@@ -75,7 +77,7 @@ def selecionar_aba(nome_aba):
 
     for widget in content.winfo_children():
         widget.destroy()
-    
+
     if nome_aba == "alarmes":
         carregar_tela_alarmes()
     elif nome_aba == "calendario":
@@ -89,98 +91,103 @@ def selecionar_aba(nome_aba):
             font=("Segoe UI", 18),
         ).pack(pady=50)
 
+
 def carregar_tela_categorias():
-    """Busca as categorias no banco e renderiza a interface visual para o usuário."""
-    # 1. Limpeza de segurança (Garante que a tela comece totalmente em branco)
+    """Busca as categorias no banco e renderiza a interface visual com botões de ação."""
     for widget in content.winfo_children():
         widget.destroy()
 
-    # 2. Cabeçalho interno da aba
     lbl_titulo = ctk.CTkLabel(
-        content, 
-        text="📁 Minhas Categorias", 
-        font=("Segoe UI", 24, "bold")
+        content, text="📁 Minhas Categorias", font=("Segoe UI", 24, "bold")
     )
     lbl_titulo.pack(anchor="nw", pady=(10, 20))
 
-    # 3. Botão para criar nova categoria futuramente
     btn_nova_cat = ctk.CTkButton(
         content,
         text="➕ Nova Categoria",
         height=40,
         font=("Segoe UI", 13, "bold"),
-        command=abrir_janela_nova_categoria
+        command=lambda: abrir_janela_categoria(),
     )
     btn_nova_cat.pack(anchor="nw", pady=(0, 20))
 
-    # 4. Painel de Exibição das Categorias (Lista)
     frame_lista = ctk.CTkFrame(content, fg_color="transparent")
     frame_lista.pack(fill="both", expand=True)
 
-    # 5. O Elo com o Database: Buscamos os dados salvos no HD
     lista_categorias = db.carregar_categorias()
     lista_alarmes = db.carregar_alarmes()
 
-    # 6. Laço de repetição (Loop) para desenhar cada categoria na tela
     for cat in lista_categorias:
-        # Lógica de negócio: Conta quantos alarmes usam o ID desta categoria
-        total_alarmes = sum(1 for alarme in lista_alarmes if alarme.get("categoria_id") == cat["id"])
+        total_alarmes = sum(
+            1 for alarme in lista_alarmes if str(alarme.get("categoria_id")) == str(cat["id"])
+        )
 
-        # Criamos o container/card visual para a categoria
         card = ctk.CTkFrame(frame_lista, height=60, corner_radius=8)
         card.pack(fill="x", pady=6)
-        card.pack_propagate(False) # Proteção de tamanho fixa
+        card.pack_propagate(False)
 
-        # Detalhe visual: Uma barrinha colorida na esquerda com a cor da categoria
+        # Barra lateral colorida
         barra_cor = ctk.CTkFrame(card, width=12, fg_color=cat["cor"], corner_radius=0)
         barra_cor.pack(side="left", fill="y")
 
-        # Texto com o nome da categoria
         lbl_nome = ctk.CTkLabel(
-            card, 
-            text=cat["nome"], 
-            font=("Segoe UI", 16, "bold")
+            card, text=cat["nome"], font=("Segoe UI", 16, "bold")
         )
         lbl_nome.pack(side="left", padx=20, pady=15)
 
-        # Contador de alarmes vinculados no canto direito
-        lbl_contador = ctk.CTkLabel(
-            card, 
-            text=f"⏰ {total_alarmes} vinculados", 
-            font=("Segoe UI", 13),
-            text_color="#888888"
-        )
-        lbl_contador.pack(side="right", padx=20, pady=15)
+        # Frame de ações à direita (Contador + Botões)
+        frame_direita = ctk.CTkFrame(card, fg_color="transparent")
+        frame_direita.pack(side="right", padx=15)
 
-def abrir_janela_nova_categoria():
-    """Abre uma janela pop-up para o usuário cadastrar uma nova categoria."""
-    # Cria uma janela flutuante (Toplevel)
+        lbl_contador = ctk.CTkLabel(
+            frame_direita,
+            text=f"⏰ {total_alarmes} vinculados",
+            font=("Segoe UI", 13),
+            text_color="#888888",
+        )
+        lbl_contador.pack(side="left", padx=(0, 15))
+
+        # Botão de Editar
+        btn_editar = ctk.CTkButton(
+            frame_direita,
+            text="✏️",
+            width=35,
+            height=32,
+            fg_color="#2b2b2b",
+            hover_color="#3a3a3a",
+            command=lambda c=cat: abrir_janela_categoria(categoria_para_editar=c),
+        )
+        btn_editar.pack(side="left", padx=3)
+
+        # Botão de Excluir
+        btn_excluir = ctk.CTkButton(
+            frame_direita,
+            text="🗑️ Excluir",
+            width=85,
+            height=34,
+            corner_radius=8,
+            fg_color="#3a1a1a",       
+            hover_color="#c84343",     
+            text_color="#ff9999",      
+            font=("Segoe UI", 12, "bold"),
+            command=lambda c_id=cat["id"], c_nome=cat["nome"], qtd=total_alarmes: confirmar_exclusao_categoria(c_id, c_nome, qtd),
+        )
+        btn_excluir.pack(side="left", padx=4)
+
+
+def abrir_janela_categoria(categoria_para_editar=None):
+    """Abre o modal unificado para criar ou editar categorias."""
     janela_pop = ctk.CTkToplevel(app)
-    janela_pop.title("📁 Nova Categoria")
-    janela_pop.geometry("400x250")
-    janela_pop.resizable(False, False)
     
-    # Garante que o usuário foque apenas nessa janela enquanto ela estiver aberta
+    # Define o título dinamicamente com base na ação
+    titulo_modal = "✏️ Editar Categoria" if categoria_para_editar else "📁 Nova Categoria"
+    janela_pop.title(titulo_modal)
+    janela_pop.geometry("400x270")
+    janela_pop.resizable(False, False)
+
     janela_pop.grab_set()
     janela_pop.attributes("-topmost", True)
 
-    # Label de instrução
-    ctk.CTkLabel(
-        janela_pop, text="Nome da Categoria:", font=("Segoe UI", 14, "bold")
-    ).pack(anchor="nw", padx=20, pady=(20, 5))
-
-    # Campo de texto (Entry) para o nome
-    txt_nome = ctk.CTkEntry(
-        janela_pop, width=360, placeholder_text="Ex: Finanças, Saúde, Academia..."
-    )
-    txt_nome.pack(padx=20, pady=5)
-
-    # Label para a seleção de cor
-    ctk.CTkLabel(
-        janela_pop, text="Selecione uma Cor:", font=("Segoe UI", 14, "bold")
-    ).pack(anchor="nw", padx=20, pady=(15, 5))
-
-    # Caixa de seleção (ComboBox) com opções de cores em formato amigável
     opcoes_cores = {
         "🔴 Vermelho": "#FF5555",
         "🟢 Verde": "#50FA7B",
@@ -188,45 +195,87 @@ def abrir_janela_nova_categoria():
         "🟡 Amarelo": "#F1FA8C",
         "🟣 Roxo": "#BD93F9",
         "🟠 Laranja": "#FFB86C",
-        "⚪ Cinza": "#6272A4"
+        "⚪ Cinza": "#6272A4",
     }
-    
+
+    # Campo Nome
+    ctk.CTkLabel(
+        janela_pop, text="Nome da Categoria:", font=("Segoe UI", 14, "bold")
+    ).pack(anchor="nw", padx=20, pady=(20, 5))
+
+    txt_nome = ctk.CTkEntry(
+        janela_pop, width=360, placeholder_text="Ex: Finanças, Saúde, Academia..."
+    )
+    txt_nome.pack(padx=20, pady=5)
+
+    # Seleção de Cor
+    ctk.CTkLabel(
+        janela_pop, text="Selecione uma Cor:", font=("Segoe UI", 14, "bold")
+    ).pack(anchor="nw", padx=20, pady=(15, 5))
+
     combo_cores = ctk.CTkComboBox(
         janela_pop, width=360, values=list(opcoes_cores.keys()), state="readonly"
     )
-    combo_cores.set("🔴 Vermelho")  # Valor padrão inicial
+    combo_cores.set("🔴 Vermelho")
     combo_cores.pack(padx=20, pady=5)
 
-    # Função interna disparada ao clicar no botão "Salvar"
+    # Preenchimento automático caso esteja em MODO EDIÇÃO
+    if categoria_para_editar:
+        txt_nome.insert(0, categoria_para_editar["nome"])
+        # Mapeia o valor Hexadecimal de volta para o texto amigável do combobox
+        for nome_cor, hex_code in opcoes_cores.items():
+            if hex_code.lower() == categoria_para_editar["cor"].lower():
+                combo_cores.set(nome_cor)
+                break
+
     def salvar_clique():
         nome = txt_nome.get().strip()
         cor_selecionada_texto = combo_cores.get()
-        cor = opcoes_cores[cor_selecionada_texto] # Traduz o nome para o código Hexadecimal (#FF5555...)
+        cor = opcoes_cores[cor_selecionada_texto]
 
-        # Validação simples de dados
         if not nome:
-            from tkinter import messagebox
-            messagebox.showwarning("⚠️ Ops!", "Por favor, digite o nome da categoria.", parent=janela_pop)
+            messagebox.showwarning(
+                "⚠️ Ops!", "Por favor, digite o nome da categoria.", parent=janela_pop
+            )
             return
 
-        # Chamando a função do database.py para gravar no arquivo JSON
-        db.criar_categorias(nome, cor)
+        if categoria_para_editar:
+            # Chama atualização no banco
+            db.atualizar_categoria(categoria_para_editar["id"], nome, cor)
+        else:
+            # Cria uma nova
+            db.criar_categorias(nome, cor)
 
-        # Fecha a janela pop-up
         janela_pop.destroy()
-
-        # Recarrega a tela de categorias para o novo card aparecer instantaneamente!
         carregar_tela_categorias()
 
-    # Botão de Ação para Salvar
+    texto_botao = "💾 Salvar Alterações" if categoria_para_editar else "💾 Salvar Categoria"
+    
     btn_salvar = ctk.CTkButton(
         janela_pop,
-        text="💾 Salvar Categoria",
+        text=texto_botao,
         height=35,
         font=("Segoe UI", 13, "bold"),
-        command=salvar_clique
+        command=salvar_clique,
     )
     btn_salvar.pack(pady=25)
+
+
+def confirmar_exclusao_categoria(cat_id, cat_nome, qtd_alarmes=0):
+    """Exibe uma mensagem detalhada antes de apagar a categoria."""
+    if qtd_alarmes > 0:
+        mensagem = (
+            f"A categoria '{cat_nome}' possui {qtd_alarmes} alarme(s) vinculado(s)!\n\n"
+            f"Se continuar, a categoria será apagada e os alarmes ficarão sem categoria.\n\n"
+            f"Deseja realmente excluir?"
+        )
+    else:
+        mensagem = f"Deseja realmente excluir a categoria '{cat_nome}'?"
+
+    if messagebox.askyesno("⚠️ Confirmar Exclusão", mensagem):
+        db.deletar_categoria(cat_id)
+        carregar_tela_categorias()
+
 
 def criar_botao_menu(texto, comando_aba):
     botao = ctk.CTkButton(
@@ -244,18 +293,13 @@ def criar_botao_menu(texto, comando_aba):
     return botao
 
 
-# Inicialização dos botões do Menu Lateral
 botoes_menu["alarmes"] = criar_botao_menu("⏰ Alarmes", "alarmes")
 botoes_menu["calendario"] = criar_botao_menu("📅 Calendário", "calendario")
 botoes_menu["categorias"] = criar_botao_menu("📂 Categorias", "categorias")
 botoes_menu["estatisticas"] = criar_botao_menu("📊 Estatísticas", "estatisticas")
 botoes_menu["configuracoes"] = criar_botao_menu("⚙️ Configurações", "configuracoes")
 
-# Força inicialização na aba padrão
 selecionar_aba("alarmes")
-
-# Dispara o motor em uma Thread isolada para não congelar o mouse
-import threading
 
 threading.Thread(
     target=eng.verificar_alarmes_loop,

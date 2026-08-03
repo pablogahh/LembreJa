@@ -2,8 +2,8 @@
     {
         "id": "8c03525b-bbbb-4dcc-bac0-02aa9b7fc9a1",
         "titulo": "Implementação",
-        "categoria": "Finanças",
-        "categoria_id": "1785782139375",
+        "categoria": "Trabalho",
+        "categoria_id": "1",
         "prioridade": "🟡 Média",
         "data": "11/07/2026",
         "horario": "18:00",
@@ -50,6 +50,17 @@
         "data": "02/08/2026",
         "horario": "18:00",
         "descricao": "teste 02",
+        "disparado": false
+    },
+    {
+        "id": "49c5af89-7ffe-4d96-9eba-617d5e983d2d",
+        "titulo": "Teste 10",
+        "categoria": "Estudos",
+        "categoria_id": "2",
+        "prioridade": "🟢 Baixa",
+        "data": "04/08/2026",
+        "horario": "12:20",
+        "descricao": "teste 10",
         "disparado": false
     }
 ]
