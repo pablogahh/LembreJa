@@ -2,8 +2,8 @@
     {
         "id": "8c03525b-bbbb-4dcc-bac0-02aa9b7fc9a1",
         "titulo": "Implementação",
-        "categoria": "Trabalho",
-        "categoria_id": "1",
+        "categoria": "Finanças",
+        "categoria_id": "1785785867103",
         "prioridade": "🟡 Média",
         "data": "11/07/2026",
         "horario": "18:00",
@@ -13,8 +13,8 @@
     {
         "id": "3ce83102-8176-472b-853b-c2c3a36a85ff",
         "titulo": "Teste Calendário",
-        "categoria": "Pessoal",
-        "categoria_id": "3",
+        "categoria": "Finanças",
+        "categoria_id": "1785785867103",
         "prioridade": "🟢 Baixa",
         "data": "20/06/2026",
         "horario": "18:00",
@@ -24,7 +24,8 @@
     {
         "id": "ba73ec1e-5fea-4f89-bf82-012b38e1de9d",
         "titulo": "teste",
-        "categoria": "Estudos",
+        "categoria": "Pessoal",
+        "categoria_id": "3",
         "prioridade": "🔴 Alta",
         "data": "31/07/2026",
         "horario": "19:00",
@@ -61,6 +62,17 @@
         "data": "04/08/2026",
         "horario": "12:20",
         "descricao": "teste 10",
+        "disparado": false
+    },
+    {
+        "id": "696e4892-03d5-483c-baf7-495ddda714d1",
+        "titulo": "Teste 11",
+        "categoria": "Trabalho",
+        "categoria_id": "1",
+        "prioridade": "🟢 Baixa",
+        "data": "05/08/2026",
+        "horario": "12:00",
+        "descricao": "teste 11",
         "disparado": false
     }
 ]
