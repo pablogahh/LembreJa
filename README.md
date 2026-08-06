@@ -1,12 +1,11 @@
-# LembreJá - Gerenciador de Lembretes (CLI)
-
-> Aplicação em Python para criação, organização e persistência de lembretes diários executada via Linha de Comando (CLI).
+# LembreJá - Gerenciador Inteligente de Alarmes e Lembretes
+> Aplicação desktop desenvolvida em Python utilizando CustomTkinter para gerenciamento de alarmes, lembretes e produtividade. O projeto foi criado com foco no aprendizado de arquitetura de software, modularização e desenvolvimento de interfaces gráficas.
 
 ---
 
 ## Sobre o Projeto
 
-O **LembreJá** é uma ferramenta desenvolvida em Python focada na gestão eficiente de tarefas e lembretes pessoais diretamente pelo terminal. 
+O **LembreJá** é uma ferramenta desenvolvida em Python focada na gestão eficiente de tarefas e lembretes pessoais.
 
 Iniciado como um projeto simples de estudo, o software passou por um processo completo de **refatoração e evolução arquitetural**, saindo de um script único para uma aplicação **modularizada com separação de responsabilidades**, garantindo um código limpo, testável e de fácil manutenção.
 
@@ -14,7 +13,8 @@ Iniciado como um projeto simples de estudo, o software passou por um processo co
 
 ## Evolução e Arquitetura
 
-O projeto reflete a maturidade no aprendizado de engenharia de software e está dividido em fases:
+O projeto evoluiu ao longo de três versões.
+As versões anteriores permanecem disponíveis na pasta legacy para demonstrar a evolução da arquitetura e das boas práticas aplicadas durante o desenvolvimento:
 
 * **`legacy/` (Versões Anteriores):** Contém os scripts iniciais em arquivo único (`v1` e `v2`), desenvolvidos para consolidar conceitos fundamentais de sintaxe, estruturas de dados e manipulação básica de arquivos.
 * **`src/` (Versão Atual - LembreJá):** Arquitetura moderna e organizada em módulos independentes:
@@ -27,29 +27,93 @@ O projeto reflete a maturidade no aprendizado de engenharia de software e está 
 
 ## Funcionalidades
 
-- [x] **Criar novos lembretes:** Adição rápida de tarefas com categorias e prazos.
-- [x] **Listar lembretes:** Visualização organizada com status e formatação no terminal.
-- [x] **Gerenciar status:** Marcar lembretes como concluídos ou pendentes.
-- [x] **Remover lembretes:** Exclusão individual de itens da lista.
-- [x] **Persistência de Dados:** Salvamento automático das informações para não perder dados ao fechar o terminal.
+- [x] **Gerenciamento de alarmes e lembretes:** Criação, edição e exclusão de lembretes com data, horário e descrição.
+- [x] **Categorias personalizadas:** Organização dos lembretes por categorias para facilitar o gerenciamento.
+- [x] **Dashboard de estatísticas:** Visualização de informações e indicadores sobre os lembretes cadastrados.
+- [x] **Calendário integrado:** Consulta rápida dos lembretes programados por data.
+- [x] **Histórico de atividades:** Registro automático dos lembretes concluídos para acompanhamento.
+- [x] **Configurações do aplicativo:** Personalização de preferências e comportamento da aplicação.
+- [x] **Tema Claro e Escuro:** Alternância entre modos de aparência para melhor experiência de uso.
+- [x] **Validação inteligente de dados:** Verificação automática de datas e horários durante o cadastro.
+- [x] **Processamento em segundo plano:** Monitoramento contínuo dos alarmes sem interromper a interface do usuário.
+- [x] **Persistência de dados:** Armazenamento local das informações, preservando todos os dados entre as execuções do sistema.
 
 ---
 
 ## Tecnologias e Ferramentas
 
-* **Linguagem:** Python 3.x
-* **Versionamento:** Git & GitHub
-* **Ambiente de Desenvolvimento:** Visual Studio Code (VS Code)
+### Linguagens
+- **Python 3.x**
+
+### Interface Gráfica
+- **CustomTkinter** – Desenvolvimento da interface desktop moderna.
+
+### Persistência de Dados
+- **JSON** – Armazenamento local das informações da aplicação.
+
+### Bibliotecas da Linguagem
+- **threading** – Processamento em segundo plano para monitoramento dos alarmes.
+- **datetime** – Manipulação e validação de datas e horários.
+- **os** – Gerenciamento de arquivos e diretórios.
+
+### Controle de Versão
+- **Git**
+- **GitHub**
+
+### Ambiente de Desenvolvimento
+- **Visual Studio Code (VS Code)**
 
 ---
 
 ## Como Executar o Projeto
 
 ### Pré-requisitos
-* Ter o **Python 3.8+** instalado na máquina.
 
-### Passo a passo
+Antes de iniciar, certifique-se de possuir os seguintes requisitos:
 
-1. **Clone o repositório:**
-   ```bash
-   git clone [https://github.com/pablogahh/LembreJa.git](https://github.com/pablogahh/LembreJa.git)
+- **Python 3.10 ou superior**
+- **Git** instalado na máquina
+
+### Instalação
+
+1. Clone este repositório:
+
+```bash
+git clone https://github.com/pablogahh/LembreJa.git
+```
+
+2. Acesse o diretório do projeto:
+
+```bash
+cd LembreJa
+```
+
+3. (Opcional) Crie e ative um ambiente virtual:
+
+**Windows**
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+**Linux / macOS**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+4. Instale as dependências:
+
+```bash
+pip install -r requirements.txt
+```
+
+5. Execute a aplicação:
+
+```bash
+python main.py
+```
+
+> **Observação:** Na primeira execução, o aplicativo criará automaticamente os arquivos e diretórios necessários para armazenar os dados do usuário.
